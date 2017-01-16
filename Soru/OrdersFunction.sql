@@ -6,7 +6,7 @@ BEGIN
 SET Error = TRUE;
 SET @FoodId = (SELECT Id FROM Food WHERE FoodName = FoodPar);
 -- SET @CurrentSessionName = (SELECT SessionName FROM TypeOfFood WHERE CURRENT_TIME() BETWEEN SessionStart AND SessionEnd); -- dinner and refreshment
-SET @TypeId = (SELECT TypeId FROM FoodToTypeMap WHERE FoodId = @FoodId AND TypeId IN (SELECT Id FROM TypeOfFood WHERE CURRENT_TIME() BETWEEN SessionStart AND SessionEnd));-- Coffee and Tea maped to morning and evening
+SET @TypeId = (SELECT TypeId FROM FoodToTypeMap WHERE FoodId = 9 AND TypeId IN (SELECT Id FROM TypeOfFood WHERE CURRENT_TIME() BETWEEN SessionStart AND SessionEnd));-- Coffee and Tea maped to morning and evening
 
 SET @SessionName = (SELECT SessionName FROM TypeOfFood WHERE Id = @TypeId);
 SET @SessionStart = (SELECT SessionStart FROM TypeOfFood WHERE @TypeId = TypeOfFood.Id);
@@ -62,6 +62,6 @@ END IF;
 END !
 DELIMITER ;
 
-/*CALL SingleOrdersProcedure('Variety Rice', 3, @Error);
+/*CALL SingleOrdersProcedure('COffee', 3, @Error);
 select @Error;
 -- CALL OrdersProcedure('Coffee', 3, 1);*/

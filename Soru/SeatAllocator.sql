@@ -6,7 +6,7 @@ BEGIN
 DECLARE seatnumber TINYINT;
 DECLARE totalseats TINYINT;
 DECLARE flag BOOLEAN;
-SET totalseats = (SELECT NumberOfSeats FROM configuration);
+SET totalseats = (SELECT COUNT(*) FROM seat);
 SET seatnumber = (FLOOR(RAND()*(totalseats-1+1))+1);
 SET @i = 1;
 SET flag = FALSE;
@@ -27,4 +27,4 @@ END IF;
 END !
 DELIMITER ;
 
-SELECT seatallocater();
+SELECT seatallocater();/*Insanely PERFECT*/

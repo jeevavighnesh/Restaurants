@@ -2,11 +2,12 @@ DROP PROCEDURE IF EXISTS OrdersProcedure;
 DELIMITER !
 CREATE PROCEDURE OrdersProcedure()
 BEGIN
+SET max_sp_recursion_depth = 255;
 SET @ItemLimit = (SELECT ItemLimit FROM Configuration);
 SET @suborderid = (SELECT Id FROM InputOrders LIMIT 1);
 SET @SeatNumber = (SELECT seatallocater());
 SET @NumberOfInputOrders = (SELECT COUNT(*) FROM InputOrders);
-SET @temp = @NumberOfInputOrders;
+-- SET @temp = @NumberOfInputOrders;
 SET @Error = FALSE;
 
 
@@ -16,29 +17,35 @@ THEN
 	THEN
 		IF (SELECT COUNT(DISTINCT Food) FROM InputOrders) <= @ItemLimit
 		THEN
-		WHILE (SELECT Id FROM InputOrders WHERE Id = @suborderid) IS NOT NULL
+WhileLoop:	WHILE (SELECT Id FROM InputOrders WHERE Id = @suborderid) IS NOT NULL
 		DO
 			SET @FoodName = (SELECT Food FROM InputOrders WHERE Id = @suborderid);
 			SET @Quantity = (SELECT Qty  FROM InputOrders WHERE Id = @suborderid);
 			CALL SingleOrdersProcedure(@FoodName, @Quantity, @Error);
 			SET @suborderid = @suborderid + 1;
+			IF @Error -- Take on this loop bruh to add in correct additions additions but u know the problem
+			THEN
+				LEAVE WhileLoop;
+			END IF;
 		END WHILE;
+		SELECT @Error;
+		SET @suborderid = (SELECT Id FROM InputOrders LIMIT 1);
 		
 			IF NOT @Error				
 			THEN
 				START TRANSACTION;
 				SET autocommit=0;
-					UPDATE Seat SET StatusId = 2/*Taken*/ WHERE Id = @SeatNumber;
+					UPDATE Seat SET StatusId = 2/*Taken yo Beat it*/ WHERE Id = @SeatNumber;
 					INSERT INTO Orders(NoOfItems, SeatId, OrdersStatus)VALUES(@NumberOfInputOrders, @SeatNumber, 1);
 					SET @OrderId = (SELECT Id FROM Orders ORDER BY (Id) DESC LIMIT 1);
 						WHILE (SELECT Id FROM InputOrders WHERE Id = @suborderid) IS NOT NULL
 						DO
 							SET @FoodName = (SELECT Food FROM InputOrders WHERE Id = @suborderid);
 							SET @Quantity = (SELECT Qty  FROM InputOrders WHERE Id = @suborderid);
-							INSERT INTO SubOrders(OrdersId, FoodId, Qty)VALUES(OrderId, @FoodId, Quantity);
+							INSERT INTO SubOrders(OrdersId, FoodId, Qty)VALUES(@OrderId, @FoodId, @Quantity);
 							/*call SingleOrdersProcedure(@OrderId, @FoodName, @Quantity);*/
 							SET @suborderid = @suborderid + 1;
-							SET @temp = @temp - 1;
+							-- SET @temp = @temp - 1;
 						END WHILE;
 					TRUNCATE InputOrders;
 					SELECT CONCAT("Your Order has been placed!!!! Please do wait for it at Seat No. ", @SeatNumber);
@@ -53,8 +60,12 @@ THEN
 	END IF;
 ELSE
 	SELECT "All our Seats are currently occupied please do wait for us to allocate it...";
+	/*if !(select sleep(5))
+	then
+		call OrdersProcedure();
+	end if;*/
 END IF;
 END !
 DELIMITER ;
 
-/*CALL OrdersProcedure();*/
+/*CALL OrdersProcedure();*/ /*Before Running this line Please DO INSERT IN THE INPUT ORDERS TABLE. Obviously We Handled the error This is just to save your time*/
